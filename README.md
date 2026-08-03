@@ -4,15 +4,14 @@
 [![Platform](https://img.shields.io/badge/platform-Android%205.0%2B-blue.svg)](https://developer.android.com/)
 [![License](https://img.shields.io/badge/license-Proprietary-lightgrey.svg)](LICENSE)
 
-The AdShift Android SDK provides install tracking, deep linking, in-app event attribution and consent handling.
+The AdShift Android SDK measures installs and in-app events, resolves direct and deferred deep links, and carries user consent signals to ad partners.
 
-This repository carries the release notes and the integration reference. The SDK is proprietary and distributed through Maven Central — there is no source code here.
+This repository is the public home for the SDK's release notes and version history. The SDK is proprietary: the source is not published here and the artifact is distributed through Maven Central.
 
-## Latest version
+## Release notes
 
-- Release notes: [CHANGELOG.md](CHANGELOG.md)
+- Changelog: [CHANGELOG.md](CHANGELOG.md)
 - All releases: https://github.com/AdShift/android-sdk-releases/releases
-- Artifact: https://central.sonatype.com/artifact/com.adshift/android-sdk
 
 ## Installation
 
@@ -22,49 +21,27 @@ dependencies {
 }
 ```
 
-Apps distributed through Google Play also need the advertising ID library — see the [integration guide](https://dev.adshift.com/docs/android-sdk) for the current dependency and the manifest permissions.
-
-## Quick start
-
-Initialize the SDK in your `Application` class, so it is running before any deferred deep link arrives:
-
-```kotlin
-import com.adshift.sdk.core.AdShiftLib
-
-class MyApp : Application() {
-    override fun onCreate() {
-        super.onCreate()
-
-        AdShiftLib.initSdk(
-            context = this,
-            devKey = "your-dev-key"
-        )
-    }
-}
-```
-
-Then start tracking:
-
-```kotlin
-AdShiftLib.start()
-```
-
-If you gate tracking on a consent dialog, call `start()` once the user has answered — events tracked before that are queued, not lost.
+Repositories, permissions and the Play Services dependency are covered in the [installation guide](https://dev.adshift.com/docs/android-sdk/installation).
 
 ## Documentation
 
-- Main documentation: https://dev.adshift.com/
-- Android SDK integration guide: https://dev.adshift.com/docs/android-sdk
-- Deep linking guide: https://dev.adshift.com/docs/deeplinks-rightlink
+The full documentation lives at [dev.adshift.com](https://dev.adshift.com/docs/android-sdk):
+
+| | |
+|---|---|
+| [Quickstart](https://dev.adshift.com/docs/android-sdk/quickstart) | Minimal integration, start to finish |
+| [Integration](https://dev.adshift.com/docs/android-sdk/integration) | Initialization, lifecycle and configuration |
+| [In-app events](https://dev.adshift.com/docs/android-sdk/events) | Event tracking and revenue |
+| [Deep links](https://dev.adshift.com/docs/android-sdk/deeplinks) | Direct, deferred and RightLink handling |
+| [Consent](https://dev.adshift.com/docs/android-sdk/consent) · [DMA](https://dev.adshift.com/docs/android-sdk/dma) | GDPR, TCF 2.2 and Google consent signals |
+| [Backup rules](https://dev.adshift.com/docs/android-sdk/backup) | Auto Backup exclusions and manifest conflicts |
+| [Push notifications](https://dev.adshift.com/docs/android-sdk/push-notifications) | Attributing push-driven re-engagement |
+| [Troubleshooting](https://dev.adshift.com/docs/android-sdk/troubleshooting) · [Debugging](https://dev.adshift.com/docs/android-sdk/debugging) | Verifying an integration |
 
 ## Requirements
 
 - Android 5.0 (API 21) or newer
 - Compiled against API 35
-
-## Privacy
-
-The SDK supports GDPR and TCF 2.2 consent, Google consent signals (`ad_storage`, `ad_user_data`, `ad_personalization`) and Limit Ad Tracking enforcement. Advertising identifiers are collected only when consent allows it.
 
 ## Support
 

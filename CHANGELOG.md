@@ -4,23 +4,29 @@ All notable changes to the AdShift Android SDK will be documented in this file.
 
 ## [3.0.0] - unreleased
 
-Major release covering consent handling and device identity. Upgrading requires code changes — see the upgrade notes below.
+Major release covering consent handling, device identity and event delivery. Upgrading requires code changes — see the upgrade notes below.
 
 ### Changed
 - **Consent flags are tri-state** — `AdShiftConsent` exposes `Boolean?` instead of `Boolean`, where `null` means the user has not made a decision. This lets us tell "denied" apart from "never asked" when forwarding consent to partners; under GDPR a `null` flag is treated as no consent.
 - **`forGDPRUser` requires all three arguments** — the `hasConsentForAdStorage = false` default and the two-argument Java overload are gone, because that default silently denied ad storage for every integration that omitted it.
-- **The SDK ships Auto Backup rules** — a reinstall no longer restores the previous install's identifiers or replays its buffered events. Apps that declare their own `android:fullBackupContent` or `android:dataExtractionRules` need to merge the SDK exclusions before upgrading.
+- **The SDK ships Auto Backup rules** — a reinstall no longer restores the previous install's identifiers or replays its buffered events, so it is measured as a new install. Apps that declare their own `android:fullBackupContent` or `android:dataExtractionRules` need to merge the SDK exclusions before upgrading.
 - **The AdShift device ID is written once** — it is no longer regenerated when ad storage is denied, so `getAdShiftDeviceId()` stays stable for the lifetime of the install. Users are no longer counted more than once after a consent change, and subscription platforms such as RevenueCat and Adapty stitch reliably against it.
 - **Consent survives app restarts** — a value passed to `setConsentData` is stored and reapplied on the next launch, together with the advertising identifier gate.
 - **Advertising identifiers follow consent for good** — cached GAID and OAID are cleared, the fetch is skipped, and identifiers are stripped from events that were queued before the denial.
+- **Limit Ad Tracking is enforced** — when a user opts out at the device level, the advertising ID is skipped and any stored copy is removed.
+- **An unreachable backend no longer costs events** — API key validation runs with a valid / invalid / unknown verdict and backoff, and no outcome clears the queue.
 
 ### Added
+- **Time in app** — every app open reports a lifetime foreground-time counter, which the backend turns into time-in-app and session-length metrics.
+- **Meta install referrer and app links** — installs coming from Facebook, Instagram and Lite are attributed through the Meta install referrer, capped at two seconds so it never delays the install event, and `al_applink_data` deep links are parsed for same-session retargeting.
 - **Device details** — events carry the device type, hardware model and manufacturer.
-- **Delivery reliability** — events are written to disk before any network call and retried from a crash-safe queue, each carrying an identifier that lets the backend drop duplicates.
-- **Meta install referrer** — install referrer and deep link data from Meta campaigns.
+- **Delivery reliability** — events are written to disk before any network call and retried from a crash-safe queue with per-endpoint backoff, each carrying an identifier that lets the backend drop duplicates. Server-to-server clicks use the same persistent queue.
 
 ### Removed
-- **`ad_personalization_enabled` at the payload root** — consent travels inside `consent_data` only.
+- **`ad_personalization_enabled` at the payload root** — consent travels inside `consent_data` only, which now also carries `ad_storage_enabled`.
+
+### Fixed
+- **Legitimate interest counts for TCF purpose 7** — users covered by a legitimate-interest basis under a TCF CMP are no longer treated as having denied measurement.
 
 ### Upgrading
 
@@ -53,7 +59,7 @@ If your app declares its own backup configuration, the build fails with a manife
     tools:replace="android:fullBackupContent,android:dataExtractionRules">
 ```
 
-and exclude `adshift_prefs.xml` and `adshift_event_buffer.json` in your own rule files. The [integration guide](https://dev.adshift.com/docs/android-sdk) has the complete example.
+and exclude `adshift_prefs.xml` and `adshift_event_buffer.json` in your own rule files. The [backup rules guide](https://dev.adshift.com/docs/android-sdk/backup) has the complete example.
 
 ---
 
