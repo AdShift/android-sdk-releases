@@ -2,7 +2,7 @@
 
 All notable changes to the AdShift Android SDK will be documented in this file.
 
-## [3.0.0] - unreleased
+## [3.0.0] - 2026-09-10
 
 Major release covering consent handling, device identity and event delivery. Upgrading requires code changes — see the upgrade notes below.
 
