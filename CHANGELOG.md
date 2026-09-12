@@ -2,6 +2,14 @@
 
 All notable changes to the AdShift Android SDK will be documented in this file.
 
+## [3.0.1] - Unreleased
+
+### Fixed
+- **Release builds with code shrinking start again** — the SDK now ships the shrinker rules its JSON layer needs, so an app built with `minifyEnabled true` no longer stops at startup with `TypeToken must be created with a type argument`. The rules arrive with the dependency; nothing goes into your own `proguard-rules.pro`. Affects 3.0.0 only.
+
+### Changed
+- **`enableTCFDataCollection` documents its real default** — reading IAB TCF consent data is off until you call it with `true`. The behaviour is unchanged; the documentation said the opposite.
+
 ## [3.0.0] - 2026-09-10
 
 Major release covering consent handling, device identity and event delivery. Upgrading requires code changes — see the upgrade notes below.
