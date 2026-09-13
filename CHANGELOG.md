@@ -2,6 +2,24 @@
 
 All notable changes to the AdShift Android SDK will be documented in this file.
 
+## [3.1.0] - Unreleased
+
+### Added
+- **IAB GPP consent is forwarded** — a GPP string written by your CMP is read and sent with your events once you call `enableGPPDataCollection(true)`. It travels on its own axis, alongside a GDPR decision rather than instead of one, so an app that sets European consent by hand still forwards what its CMP wrote for US users. Every section the CMP wrote is forwarded, national and state alike.
+
+### Changed
+- **A CMP axis is read only after you enable it** — `refreshConsent()` used to read and forward a TC string whether or not `enableTCFDataCollection(true)` had ever been called. It now reads only the axes you enabled. If you have never called `enableTCFDataCollection`, a refresh still reads TCF and logs a warning, so upgrading does not quietly stop forwarding your CMP's answer; add the call to keep working when that bridge goes away. An app that passed `false` is left alone.
+- **Consent hints are deprecated and decide nothing** — `ConsentHint.TCF` and `ConsentHint.GPP_US_NAT` never selected a source, and naming the GPP hint used to enable GPP for that one call, so a string could appear on one event and be gone from the next. Every hint now behaves as `ConsentHint.AUTO`; enable an axis with `enableTCFDataCollection` or `enableGPPDataCollection`. The parameter stays for source compatibility. `ConsentSource.GPP_US_NAT` keeps its name too — the name is historical and does not narrow what is read.
+- **A CMP answer is reported even when it says GDPR does not apply** — a TC string is adopted whenever your CMP publishes a complete set, not only when `IABTCF_gdprApplies` is 1. That value still decides gating; it no longer decides whether the answer is worth reporting. Snapshots and events now carry what the CMP said about users outside GDPR scope.
+- **IAB consent is read only where the specs put it** — the SDK reads the preferences file the IAB in-app specs require a CMP to write, plus a few known fallbacks, instead of searching every preferences file the app has. A CMP that writes elsewhere is named with `ConsentOptions.prefsProvider`.
+- **Four `ConsentOptions` fields are deprecated no-ops** — `preferTcfWhenBothPresent`, `gppUsNatSid`, `allowPrefsScan` and `enableUsNatMapping`. They kept their place so existing code still compiles; TCF now always owns the European axis when your CMP publishes one, and GPP sections are never filtered by id.
+
+### Fixed
+- **A GPP string no longer displaces a TC string your CMP still publishes** — the two axes are independent, and a US signal never takes over the European one.
+- **A denial outlives the CMP signal that expressed it** — when a CMP's keys disappear, a consent it produced is forgotten, but a refusal is not: the advertising identifier stays gated instead of being handed back because the keys went away.
+- **Reserved values in `IABGPP_GppSID` are no longer read as sections** — `-1` ("no section applies") and `0` ("not yet determined") were taken for section ids.
+- **`IABGPP_GppSID` stored as a number is read** — a CMP writing it as an integer rather than a string was ignored, and a store holding any IAB key with an unexpected type no longer fails the whole refresh.
+
 ## [3.0.1] - Unreleased
 
 ### Fixed
