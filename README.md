@@ -17,7 +17,7 @@ This repository is the public home for the SDK's release notes and version histo
 
 ```kotlin
 dependencies {
-    implementation("com.adshift:android-sdk:3.0.0")
+    implementation("com.adshift:android-sdk:3.1.0")
 }
 ```
 
