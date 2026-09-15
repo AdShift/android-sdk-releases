@@ -2,7 +2,7 @@
 
 All notable changes to the AdShift Android SDK will be documented in this file.
 
-## [3.1.0] - Unreleased
+## [3.1.0] - 2026-09-15
 
 ### Added
 - **IAB GPP consent is forwarded** — a GPP string written by your CMP is read and sent with your events once you call `enableGPPDataCollection(true)`. It travels on its own axis, alongside a GDPR decision rather than instead of one, so an app that sets European consent by hand still forwards what its CMP wrote for US users. Every section the CMP wrote is forwarded, national and state alike.
