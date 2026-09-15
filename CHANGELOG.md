@@ -13,20 +13,14 @@ All notable changes to the AdShift Android SDK will be documented in this file.
 - **A CMP answer is reported even when it says GDPR does not apply** — a TC string is adopted whenever your CMP publishes a complete set, not only when `IABTCF_gdprApplies` is 1. That value still decides gating; it no longer decides whether the answer is worth reporting. Snapshots and events now carry what the CMP said about users outside GDPR scope.
 - **IAB consent is read only where the specs put it** — the SDK reads the preferences file the IAB in-app specs require a CMP to write, plus a few known fallbacks, instead of searching every preferences file the app has. A CMP that writes elsewhere is named with `ConsentOptions.prefsProvider`.
 - **Four `ConsentOptions` fields are deprecated no-ops** — `preferTcfWhenBothPresent`, `gppUsNatSid`, `allowPrefsScan` and `enableUsNatMapping`. They kept their place so existing code still compiles; TCF now always owns the European axis when your CMP publishes one, and GPP sections are never filtered by id.
+- **`enableTCFDataCollection` documents its real default** — reading IAB TCF consent data is off until you call it with `true`. The behaviour is unchanged; the documentation said the opposite.
 
 ### Fixed
+- **Release builds with code shrinking start again** — the SDK now ships the shrinker rules its JSON layer needs, so an app built with `minifyEnabled true` no longer stops at startup with `TypeToken must be created with a type argument`. The rules arrive with the dependency; nothing goes into your own `proguard-rules.pro`. Affects 3.0.0 only.
 - **A GPP string no longer displaces a TC string your CMP still publishes** — the two axes are independent, and a US signal never takes over the European one.
 - **A denial outlives the CMP signal that expressed it** — when a CMP's keys disappear, a consent it produced is forgotten, but a refusal is not: the advertising identifier stays gated instead of being handed back because the keys went away.
 - **Reserved values in `IABGPP_GppSID` are no longer read as sections** — `-1` ("no section applies") and `0` ("not yet determined") were taken for section ids.
 - **`IABGPP_GppSID` stored as a number is read** — a CMP writing it as an integer rather than a string was ignored, and a store holding any IAB key with an unexpected type no longer fails the whole refresh.
-
-## [3.0.1] - Unreleased
-
-### Fixed
-- **Release builds with code shrinking start again** — the SDK now ships the shrinker rules its JSON layer needs, so an app built with `minifyEnabled true` no longer stops at startup with `TypeToken must be created with a type argument`. The rules arrive with the dependency; nothing goes into your own `proguard-rules.pro`. Affects 3.0.0 only.
-
-### Changed
-- **`enableTCFDataCollection` documents its real default** — reading IAB TCF consent data is off until you call it with `true`. The behaviour is unchanged; the documentation said the opposite.
 
 ## [3.0.0] - 2026-09-10
 
