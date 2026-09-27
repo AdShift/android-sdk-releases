@@ -2,6 +2,11 @@
 
 All notable changes to the AdShift Android SDK will be documented in this file.
 
+## [3.2.0] - Unreleased
+
+### Added
+- **Google's App Set ID is collected** — the SDK reads the [App Set ID](https://developer.android.com/identity/app-set-id) and sends it with every event, together with its scope. It is the identifier Google matches an install on when the advertising ID is missing or zeroed, which is the case for every user who deleted or limited theirs. `com.google.android.gms:play-services-appset` now comes with the SDK, so there is nothing to add. The read is capped at one second and never holds an event back, and it answers to the same consent gate as the advertising ID. To turn it off, call `AdShiftLib.setCollectAppSetId(false)`; called before `start()`, the ID is never read.
+
 ## [3.1.0] - 2026-09-15
 
 ### Added
