@@ -7,9 +7,6 @@ All notable changes to the AdShift Android SDK will be documented in this file.
 ### Added
 - **Google's App Set ID is collected** — the SDK reads the [App Set ID](https://developer.android.com/identity/app-set-id) and sends it with every event, together with its scope. It is the identifier Google matches an install on when the advertising ID is missing or zeroed, which is the case for every user who deleted or limited theirs. `com.google.android.gms:play-services-appset` now comes with the SDK, so there is nothing to add. The read is capped at one second and never holds an event back, and it answers to the same consent gate as the advertising ID. To turn it off, call `AdShiftLib.setCollectAppSetId(false)`; called before `start()`, the ID is never read.
 
-### Changed
-- **A missing install referrer is asked for again** — when Google Play cannot hand over the install referrer at first launch, the Play Store updating itself being the usual reason, or hands over an empty one, the SDK asks again in each of the next three launches and reports the referrer once it arrives. The install is still reported at first launch, and only once. No integration change is needed.
-
 ## [3.1.0] - 2026-09-15
 
 ### Added
