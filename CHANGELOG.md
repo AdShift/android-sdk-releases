@@ -9,6 +9,8 @@ All notable changes to the AdShift Android SDK will be documented in this file.
 
 ### Fixed
 - **Excluding Google's advertising ID library no longer breaks the app** — excluding `play-services-ads-identifier` (or `play-services-basement`) could fail the release build in R8 with "Missing class", or crash `AdShiftLib.initSdk` with `NoClassDefFoundError`. The SDK now treats the missing library as Google Play services being unavailable and logs a warning. To stop collecting the advertising ID, remove the `AD_ID` permission from your manifest instead: the SDK reads the advertising ID only when your app declares it, whatever your target SDK.
+- **Nothing reaches AdShift before the install** — on a first launch the install waits for the Play referrer, and an event tracked meanwhile, right after `start()`, used to be delivered first, before AdShift knew of the install. Delivery now waits until the install is queued, and the install goes first.
+- **A `stop()` and `start()` during the first launch send one install** — calling them while the install was still being prepared, as an app that ties them to its activity's lifecycle can, sent the install twice.
 
 ## [3.1.0] - 2026-09-15
 
