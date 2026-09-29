@@ -5,7 +5,12 @@ All notable changes to the AdShift Android SDK will be documented in this file.
 ## [3.2.0] - Unreleased
 
 ### Added
-- **Google's App Set ID is collected** — the SDK reads the [App Set ID](https://developer.android.com/identity/app-set-id) and sends it with every event, together with its scope. It is the identifier Google matches an install on when the advertising ID is missing or zeroed, which is the case for every user who deleted or limited theirs. `com.google.android.gms:play-services-appset` now comes with the SDK, so there is nothing to add. The read is capped at one second and never holds an event back, and it answers to the same consent gate as the advertising ID. To turn it off, call `AdShiftLib.setCollectAppSetId(false)`; called before `start()`, the ID is never read.
+- **Google's App Set ID, when your app includes Google's library** — add `com.google.android.gms:play-services-appset` and the SDK reads the [App Set ID](https://developer.android.com/identity/app-set-id) and sends it with your events. It follows the same consent rule as the advertising ID, and it is not read on devices without Google Play services or in apps that do not declare the `AD_ID` permission. To turn it off, call `AdShiftLib.setCollectAppSetId(false)` on every app start, before `start()`. If your app already includes the library, for example through Google Mobile Ads, it starts sending the ID with this version. Before you enable it, update your Data safety form ("Device or other IDs") and your privacy policy.
+
+### Fixed
+- **Excluding Google's advertising ID library no longer breaks the app** — excluding `play-services-ads-identifier` (or `play-services-basement`) could fail the release build in R8 with "Missing class", or crash `AdShiftLib.initSdk` with `NoClassDefFoundError`. The SDK now treats the missing library as Google Play services being unavailable and logs a warning. To stop collecting the advertising ID, remove the `AD_ID` permission from your manifest instead: the SDK reads the advertising ID only when your app declares it, whatever your target SDK.
+- **Nothing reaches AdShift before the install** — on a first launch the install waits for the Play referrer, and an event tracked meanwhile, right after `start()`, used to be delivered first, before AdShift knew of the install. Delivery now waits until the install is queued, and the install goes first.
+- **A `stop()` and `start()` during the first launch send one install** — calling them while the install was still being prepared, as an app that ties them to its activity's lifecycle can, sent the install twice.
 
 ## [3.1.0] - 2026-09-15
 
