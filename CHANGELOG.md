@@ -2,7 +2,7 @@
 
 All notable changes to the AdShift Android SDK will be documented in this file.
 
-## [3.2.0] - Unreleased
+## [3.2.0] - 2026-10-06
 
 ### Added
 - **Google's App Set ID, when your app includes Google's library** — add `com.google.android.gms:play-services-appset` and the SDK reads the [App Set ID](https://developer.android.com/identity/app-set-id) and sends it with your events. It follows the same consent rule as the advertising ID, but the user's opt-out of ads personalisation does not stop it. It is not read on devices without Google Play services 21.28.00 or later, or once you remove the `AD_ID` permission the SDK adds to your manifest, which stops the advertising ID too. To turn off only the App Set ID, call `AdShiftLib.setCollectAppSetId(false)` on every app start, after `initSdk()` and before `start()`. If your app already includes the library, for example through Google Mobile Ads, it starts sending the ID with this version. Before you enable it, update your Data safety form ("Device or other IDs") and your privacy policy.
