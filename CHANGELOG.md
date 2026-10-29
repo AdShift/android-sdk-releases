@@ -2,6 +2,88 @@
 
 All notable changes to the AdShift Android SDK will be documented in this file.
 
+## [4.0.0] - 2026-10-29
+
+Major release of deep linking and link attribution: one rule decides which links are RightLink links, a link's click is sent only after `start()`, and direct and deferred links come back in one result shape. Most changes are in behaviour rather than in the API, and some change what your deep link listener receives without a build error, so upgrading requires code changes. See the upgrade notes below.
+
+### Changed
+- **Only RightLink links come back `FOUND`** — a link on `rightlink.me` or its subdomains, or on a branded domain you declared with `setBrandedDomains`, is `FOUND`, also when it arrives wrapped in your app's scheme (see Added). Any other link, your app's own scheme and web links included, comes back `NOT_FOUND` with `uri` only: `queryParams` is empty and `deepLinkValue` is null. In 3.2 every link came back `FOUND` with its query parameters. So an app that routes its own links through the deep link listener now reads them from `uri`, and an app that navigates on `FOUND` ignores the links of a branded domain it did not declare. A Meta re-engagement link also comes back `NOT_FOUND`, and is still attributed.
+- **Every RightLink link counts as a click** — a link on a RightLink or declared branded domain now sends a click, and the open it starts carries it, also when the link has no `pid` and `c`. 3.2 attributed only links that carried both, so opens from such links can now be attributed.
+- **A link's click is sent after `start()`, with the consent of that moment** — the click is recorded when the link is opened, which may be before `start()`, and sent only after it, with the advertising ID and the consent read when it goes out. An app that asks for consent before it starts the SDK no longer sends a click ahead of the user's answer.
+- **Only the link parameters AdShift uses leave the device** — of a RightLink link's query, only attribution, campaign, deep link and ad click ID parameters are sent: `pid`, `c`, `campaign`, `is_retargeting`, `clickid`, `deep_link_value`, `deep_link_sub1` to `deep_link_sub5`, `gclid`, `gbraid`, `wbraid`, `ttclid`, `fbclid`, and parameters starting with `as_` or `utm_`. Anything else, such as an email address or a user ID in a campaign link, stays in `DeepLinkResult.queryParams` for your own routing and is never sent, so it does not appear in reports or postbacks either.
+- **An open by a link reports one `app_open`, which carries the click** — after `start()` the SDK waits briefly for the link your first Activity hands over, so the open's one `app_open` (or, on a first launch, the install) carries its click, and the events you track meanwhile follow it. On a cold start, events are therefore sent about a second after `start()` at the earliest. A short link opened without a network is attributed to that open once the network is back.
+- **`initSdk` makes no network call** — the developer key is checked at the first `start()`, so an app that shows a consent screen between the two calls reaches the network only after it. `start()` records the open at once, offline too, and nothing is sent until the key is accepted; its listener gets `onSuccess` then, or `onError` for a rejected key.
+- **The deferred deep link is answered within 5 seconds of `start()`** — with the answer, or with `ERROR` (`NETWORK` without a network, `TIMEOUT` otherwise), also on a first launch without a network, which in 3.2 got no answer at all. A link the user opened wins: the deferred answer waits briefly after `start()` for a link your first Activity hands over, and is not delivered once the user has opened a link in the same process. An answer that arrives after the 5 seconds is handed over at the next start, cold or from the background. While the lookup is still unanswered, each return from the background is a new try with its own 5-second answer, so your listener can receive `ERROR` for it more than once.
+- **An unanswered deferred lookup is asked again** — a start whose lookup gets no answer asks again at the next start, a return from the background included, on up to three starts; a start without a network does not count. The lookup sends the Play Install Referrer and, under the consent rules that already apply to them, the advertising ID or the OAID. Without any of them the SDK asks nothing and the answer is `NOT_FOUND`.
+- **Up to five results wait for a listener** — results that arrive while no listener is set are delivered in order, up to five, once one is set; 3.x kept only the last one. The listener may be set before `initSdk`, and `setDeepLinkListener(null)` clears it.
+- **A short link that cannot be resolved is tried again** — each failed try gives `ERROR`, and the SDK tries the link again at the next `start()` or when the network returns, up to three tries within a day. A try that resolves it delivers `FOUND` then, which can be at a later start; after the last failed try the app gets `NOT_FOUND`. A deleted short link is `NOT_FOUND`. Short codes are read in either case, so a link from an upper-case QR code resolves. Parameters appended to a short link no longer override the ones stored with it.
+- **Meta re-engagement is read only from the Meta apps** — `al_applink_data` counts only as the Bundle that Facebook, Instagram, Messenger or Facebook Lite delivers when it launched the Activity. The payload in a URL's query or in a String extra, and a `campaign_ids` URL parameter, are ignored, so only the Meta apps can report a Meta re-engagement.
+- **`handleAppLinkIntent` and `setDeepLinkListener` no longer throw before `initSdk`** — `handleAppLinkIntent` logs an integration error and ignores the intent, and `setDeepLinkListener` keeps the listener for when the SDK is initialized. An intent that is not `ACTION_VIEW` with data is ignored with a log, and a secondary process of your app takes no link in.
+
+### Added
+- **`DeepLinkResult.deepLinkValue`, `source` and `clickId`** — `deepLinkValue` is what to navigate on: `deep_link_value` of the link or of the deferred answer. `source` says how the link reached the app (`APP_LINK`, `SCHEME`, `CTA` for the button of a RightLink landing page, `PUSH`, `META_APPLINK`, `DEFERRED`, or `FOREIGN` for a web link of another domain). `clickId` names the click the open was attributed to. `sub1` to `sub5` are now filled for links the app was opened with too. `uri` is the link as opened, unwrapped from your scheme and with a short link expanded; on a deferred result it is `deepLinkValue` as a Uri, as in 3.x.
+- **`handleAppLinkIntent(intent, savedInstanceState)`** — called from `onCreate`, it tells an Activity the system re-created (a rotation, a return after the process was killed) from a new tap, so a re-created Activity sends no second click and gets no second delivery. The SDK also takes one tap once in other cases: the same Intent again within 10 seconds, an Intent relaunched from Recents, and the landing page's button reopening the app for a click that already opened it.
+- **RightLink links inside your app's scheme** — a link in your scheme that carries a RightLink link in `as_rl`, such as `<scheme>://rightlink?as_rl=<encoded link>`, is read as the link it wraps, short links included, and attributed. 3.x treated it as a foreign link.
+- **Test traffic** — `AdShiftLib.setTestMode(true)`, called before `start()`, marks every click and event as test traffic, which is kept out of your reports. The deferred deep link lookup is not marked, and a debug build does not turn it on by itself. On Google's test devices (Firebase Test Lab, which also runs the Google Play pre-launch report) the SDK marks its traffic as test traffic by itself, so the devices Google uses to check an uploaded build do not show up as your users.
+
+### Removed
+- **AppCompat and Material are no longer pulled into your app** — the SDK never used `androidx.appcompat` or `com.google.android.material`, but declared them, so every app received them through it. If your app uses either without declaring it, for example in a theme or a layout, declare it now.
+- **Huawei's `ads-installreferrer` is no longer needed** — the SDK has never read the AppGallery referrer; from Huawei it reads only the OAID through `ads-identifier`. Earlier versions of our instructions asked you to add the referrer library; remove it unless your app uses it for something else.
+
+### Fixed
+- **A deferred answer that lost to an opened link no longer opens later** — a deferred answer of a launch in which the user opened a link was kept and could navigate the app at a later start from the icon, without the user doing anything. It is now final, whether it arrived before or after the link.
+- **A tap's attribution no longer reaches a much later open** — when the `app_open` of a link's open was never sent, for example because the process died before `start()`, the link's attribution was kept for the next open, which could be a session started from the icon days later. It now expires 10 minutes after the tap.
+- **An install restored from another install's backup is measured as its own** — an app that replaced the SDK's backup rules could restore the SDK state of another install, which skipped this install's `app_install` and its deferred lookup. State that belongs to another install is now cleared in `initSdk`.
+- **`isFirstSession` is right for a link handed over before `start()`** — in 3.2 such a link always read `true`; it now says whether this is the first run of the SDK on this install.
+- **Internationalized branded domains match** — a branded domain is compared in punycode, whichever form your app or the link uses.
+
+### Upgrading
+
+Pass `savedInstanceState` to `handleAppLinkIntent` in `onCreate`. `onNewIntent` keeps the one-argument call:
+
+```kotlin
+override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    // before: AdShiftLib.handleAppLinkIntent(intent)
+    AdShiftLib.handleAppLinkIntent(intent, savedInstanceState)
+}
+
+override fun onNewIntent(intent: Intent) {
+    super.onNewIntent(intent)
+    AdShiftLib.handleAppLinkIntent(intent)
+}
+```
+
+The one-argument call still compiles in `onCreate`, but a re-created Activity then counts as a new tap once the 10-second window has passed.
+
+Declare every branded link domain after `initSdk` and before `start()`, or its links come back `NOT_FOUND`:
+
+```kotlin
+AdShiftLib.setBrandedDomains(listOf("go.yourbrand.com"))
+```
+
+Navigate on `FOUND` only, with `deepLinkValue` (a campaign can also route by `sub1` to `sub5` alone), and validate the value first, since anyone can write a link. Read your app's own links from `uri` on `NOT_FOUND`: `queryParams` is filled for RightLink links only. Treat `ERROR` as "no deep link for now": a first screen waiting for the deferred deep link gets an answer within 5 seconds of `start()`, and a short link that failed can still arrive as `FOUND` at a later start.
+
+```kotlin
+AdShiftLib.setDeepLinkListener(object : DeepLinkListener {
+    override fun onDeepLinking(result: DeepLinkResult) {
+        when (result.status) {
+            DeepLinkStatus.FOUND -> { /* validate result.deepLinkValue, then navigate */ }
+            DeepLinkStatus.NOT_FOUND -> { /* your own links: route on result.uri */ }
+            DeepLinkStatus.ERROR -> { /* continue without a deep link */ }
+        }
+    }
+})
+```
+
+Register the listener once, in `Application.onCreate`. A listener set in an Activity holds that Activity until it is replaced, so clear it there with `AdShiftLib.setDeepLinkListener(null)` in `onDestroy`.
+
+If your app uses AppCompat or Material without declaring them, add them to your dependencies.
+
+Declare the Activity that handles links with `android:launchMode="singleTask"` and handle the link in `onNewIntent`. With the default launch mode, Android can bring a task opened by a link back to the front without delivering a second tap of the same link, and the SDK cannot see a tap the system does not deliver.
+
+`DeepLinkResult`'s constructor and `copy` take three more parameters. Kotlin code that builds a `DeepLinkResult` itself, such as a test, needs a recompile; Java code passes the three new arguments.
+
 ## [3.2.0] - 2026-10-06
 
 ### Added
