@@ -9,15 +9,12 @@ Major release of deep linking and link attribution. Most changes are in behaviou
 ### Changed
 - **Only RightLink links come back `FOUND`** — a link on `rightlink.me` or its subdomains, or on a branded domain you declared with `setBrandedDomains`, is `FOUND`. Any other link, your app's own scheme and web links included, comes back `NOT_FOUND` with `uri` only and an empty `queryParams`. In 3.2 every link came back `FOUND` with its query parameters.
 - **Every RightLink link counts as a click** — also when it has no `pid` and `c` (or `campaign`), which 3.2 required.
-- **A link's click is sent after `start()`, with the consent of that moment** — an app that asks for consent before it starts the SDK no longer sends a click ahead of the user's answer.
+- **`initSdk` makes no network call, and a link's click waits for `start()`** — the developer key is checked at the first `start()`, and a link's click is sent after it with the consent of that moment, so an app that asks for consent before it starts the SDK no longer sends a click ahead of the user's answer.
 - **Only the link parameters needed for attribution and deep linking leave the device** — anything else in a campaign link, such as an email address or a user ID, stays in `queryParams` for your own routing and is never sent.
 - **An open by a link reports one `app_open`, which carries the click** — events you track right after `start()` are sent after it, a moment later than in 3.2.
-- **`initSdk` makes no network call** — the developer key is checked at the first `start()`, so an app that shows a consent screen between the two reaches the network only after it.
 - **The deferred deep link is answered within 5 seconds of `start()`** — with the answer or with `ERROR`, also without a network. An answer that arrives later is handed over at a later start, unless the user has opened a link by then.
-- **Up to five results wait for a listener** — 3.x kept only the last one. The listener may be set before `initSdk`, and `setDeepLinkListener(null)` clears it.
 - **A short link that could not be resolved is tried again** — the app gets `ERROR` first, and `FOUND` at a later start if a later try resolves it.
 - **Meta re-engagement is read only from the Meta apps** — `al_applink_data` counts only when Facebook, Instagram, Messenger or Facebook Lite opened the app with it, and a `campaign_ids` URL parameter is ignored.
-- **`handleAppLinkIntent` and `setDeepLinkListener` no longer throw before `initSdk`** — the first logs an integration error and ignores the intent, the second keeps the listener for later.
 
 ### Added
 - **`DeepLinkResult.deepLinkValue`, `source` and `clickId`** — `deepLinkValue` is what to navigate on, `source` says how the link reached the app, and `clickId` names the click the open was attributed to. `sub1` to `sub5` are now filled for links the app was opened with too, and `uri` holds a short link already expanded.
@@ -32,7 +29,6 @@ Major release of deep linking and link attribution. Most changes are in behaviou
 ### Fixed
 - **A deferred deep link no longer opens the app's content unprompted** — a deferred answer that lost to a link the user opened could navigate the app at a later start from the icon.
 - **A link's attribution no longer carries over to a later, unrelated open** — for example when the app was closed before `start()` ran.
-- **An install restored from another install's backup is measured as its own** — in apps that replaced the SDK's backup rules.
 - **`isFirstSession` is correct for a link handed over before `start()`** — in 3.2 it always read `true`.
 
 ### Upgrading
@@ -73,8 +69,6 @@ AdShiftLib.setDeepLinkListener(object : DeepLinkListener {
 ```
 
 Register the listener once, in `Application.onCreate`. A listener set in an Activity holds that Activity until it is replaced, so clear it there with `AdShiftLib.setDeepLinkListener(null)` in `onDestroy`.
-
-Declare the Activity that handles links with `android:launchMode="singleTask"` and handle the link in `onNewIntent`. With the default launch mode, Android can bring a task opened by a link to the front without delivering the link tapped again.
 
 `DeepLinkResult`'s constructor and `copy` take three more parameters. Kotlin code that builds a `DeepLinkResult` itself, such as a test, needs a recompile; Java code passes the three new arguments.
 
