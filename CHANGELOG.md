@@ -2,6 +2,12 @@
 
 All notable changes to the AdShift Android SDK will be documented in this file.
 
+## [4.0.1] - Unreleased
+
+### Fixed
+- **A re-engagement from a link is no longer lost on a cold start** — when the link reached the app a moment after `start()` had recorded the open, the open could report its click as later than the open itself, and the open was then not attributed to the link. Long and short links alike, in a few percent of cold starts by a link.
+- **A short link tapped offline is kept when the app is killed while it is tried again** — the link, and its click, were dropped for good if the app died during the retry. The link now stays until the retry has an answer.
+
 ## [4.0.0] - 2026-10-29
 
 Major release of deep linking and link attribution. Most changes are in behaviour rather than in the API, and some change what your deep link listener receives without a build error, so upgrading requires code changes. See the upgrade notes below.
