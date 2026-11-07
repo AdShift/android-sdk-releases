@@ -2,6 +2,21 @@
 
 All notable changes to the AdShift Android SDK will be documented in this file.
 
+## [4.1.0] - Unreleased
+
+### Changed
+- **A short RightLink counts at the tap, also without a network** — the SDK no longer waits for the link to be looked up before it reports the click and the open. The click and the `app_open` go with the link as tapped, and AdShift reads the link's values from it. Only your deep link listener waits for the lookup: `FOUND` with the link's value once it answers, `ERROR` (`NETWORK`) meanwhile when there is no network, and `FOUND` later when it is back. Nothing is asked of the network while there is none.
+- **A deleted short link still reports its click** — the listener gets `NOT_FOUND` as before; the click and the open are reported with the link, and AdShift records that the link no longer exists.
+- **`attributed` is no longer sent** — events carry no `attributed` field. Whether an open or an install came from a click was always AdShift's decision, made from the click data the event carries.
+
+### Fixed
+- **A re-engagement from a link is no longer lost on a cold start** — when the link reached the app a moment after `start()` had recorded the open, the open could report its click as later than the open itself, and the open was then not attributed to the link. Long and short links alike, in a few percent of cold starts by a link.
+- **A short link tapped without a network is kept when the app is killed before the network is back** — its click and open leave at the next start, and the link's value reaches your listener once it is looked up. In 4.0.0 the link, and its click, were dropped for good if the app died while the link was being looked up.
+
+### Upgrading
+
+Nothing to change in your code. If your app routes on `uri` for a short link, keep routing on `FOUND`: `uri` still holds the expanded link once it is looked up, and the `ERROR` before it carries the short link as tapped.
+
 ## [4.0.0] - 2026-10-29
 
 Major release of deep linking and link attribution. Most changes are in behaviour rather than in the API, and some change what your deep link listener receives without a build error, so upgrading requires code changes. See the upgrade notes below.
