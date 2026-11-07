@@ -7,7 +7,7 @@ All notable changes to the AdShift Android SDK will be documented in this file.
 ### Changed
 - **A short RightLink counts at the tap, also without a network** — the click and the `app_open` are reported with the link as tapped, before it is looked up. Only your deep link listener waits for the lookup: `FOUND` with the link's value once it answers, `ERROR` (`NETWORK`) when there is no network, and `FOUND` later when it is back. Nothing is asked of the network while there is none.
 - **Events tracked right after `start()` no longer wait for a short link's lookup** — they leave with the open, as for a long link.
-- **A short link tapped more than 24 hours before it could be looked up comes back `NOT_FOUND`** — at the next start, without a lookup.
+- **A short link tapped more than an hour earlier is no longer looked up or navigated** — the app gets no second callback for it; the `ERROR` at the tap was the answer.
 - **A deleted short link still reports its click** — the listener gets `NOT_FOUND` as before; the click and the open are reported with the link.
 - **`attributed` is no longer sent** — events carry no `attributed` field.
 
