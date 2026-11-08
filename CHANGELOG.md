@@ -5,19 +5,17 @@ All notable changes to the AdShift Android SDK will be documented in this file.
 ## [4.1.0] - Unreleased
 
 ### Changed
-- **A short RightLink counts at the tap, also without a network** — the click and the `app_open` are reported with the link as tapped, before it is looked up. Only your deep link listener waits for the lookup: `FOUND` with the link's value once it answers, `ERROR` (`NETWORK`) when there is no network, and `FOUND` later when it is back. Nothing is asked of the network while there is none.
+- **A short RightLink counts at the tap, also without a network** — the click and the `app_open` no longer wait for the link to be looked up. Only your deep link listener waits: `FOUND` with the link's value once it is looked up, `ERROR` (`NETWORK`) while there is no network, and `FOUND` once it is back. A link that has since been deleted comes back `NOT_FOUND`, as before.
 - **Events tracked right after `start()` no longer wait for a short link's lookup** — they leave with the open, as for a long link.
-- **A short link tapped more than an hour earlier is no longer looked up or navigated** — the app gets no second callback for it; the `ERROR` at the tap was the answer.
-- **A deleted short link still reports its click** — the listener gets `NOT_FOUND` as before; the click and the open are reported with the link.
-- **`attributed` is no longer sent** — events carry no `attributed` field.
+- **A short link that could not be looked up is retried for an hour after the tap** — after that the listener hears nothing more about it; the `ERROR` at the tap stands.
 
 ### Fixed
-- **A re-engagement from a link is no longer lost on a cold start** — when the link reached the app a moment after `start()` had reported the open, the open was not attributed to the link.
-- **A short link tapped without a network is kept when the app is killed before the network is back** — its click and open leave at the next start, and the link's value reaches your listener once it is looked up.
+- **A link opening the app on a cold start is attributed reliably** — a link handed over a moment after `start()` could lose its attribution to the open.
+- **A short link tapped without a network survives the app being killed before it is looked up** — the click counts, and the link's value reaches your listener at a later start once it is looked up.
 
 ### Upgrading
 
-Nothing to change in your code. If your app routes on `uri` for a short link, keep routing on `FOUND`: `uri` still holds the expanded link once it is looked up, and the `ERROR` before it carries the short link as tapped.
+Nothing to change in your code. If your app routes on `uri` for a short link, keep routing on `FOUND`: `uri` holds the expanded link once it is looked up, and the `ERROR` before it carries the short link as tapped.
 
 ## [4.0.0] - 2026-10-29
 
