@@ -2,6 +2,21 @@
 
 All notable changes to the AdShift Android SDK will be documented in this file.
 
+## [4.1.0] - Unreleased
+
+### Changed
+- **A short RightLink counts at the tap, also without a network** — the click and the `app_open` no longer wait for the link to be looked up. Only your deep link listener waits: `FOUND` with the link's value once it is looked up, `ERROR` (`NETWORK`) while there is no network, and `FOUND` once it is back. A link that has since been deleted comes back `NOT_FOUND`, as before.
+- **Events tracked right after `start()` no longer wait for a short link's lookup** — they leave with the open, as for a long link.
+- **A short link that could not be looked up is retried for an hour after the tap** — after that the listener hears nothing more about it; the `ERROR` at the tap stands.
+
+### Fixed
+- **A link opening the app on a cold start is attributed reliably** — a link handed over a moment after `start()` could lose its attribution to the open.
+- **A short link tapped without a network survives the app being killed before it is looked up** — the click counts, and the link's value reaches your listener at a later start once it is looked up.
+
+### Upgrading
+
+Nothing to change in your code. If your app routes on `uri` for a short link, keep routing on `FOUND`: `uri` holds the expanded link once it is looked up, and the `ERROR` before it carries the short link as tapped.
+
 ## [4.0.0] - 2026-10-29
 
 Major release of deep linking and link attribution. Most changes are in behaviour rather than in the API, and some change what your deep link listener receives without a build error, so upgrading requires code changes. See the upgrade notes below.
