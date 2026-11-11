@@ -2,7 +2,7 @@
 
 All notable changes to the AdShift Android SDK will be documented in this file.
 
-## [4.1.0] - Unreleased
+## [4.1.0] - 2026-11-11
 
 ### Changed
 - **A short RightLink counts at the tap, also without a network** — the click and the `app_open` no longer wait for the link to be looked up. Only your deep link listener waits: `FOUND` with the link's value once it is looked up, `ERROR` (`NETWORK`) while there is no network, and `FOUND` once it is back. A link that has since been deleted comes back `NOT_FOUND`, as before.
