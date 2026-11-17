@@ -2,6 +2,15 @@
 
 All notable changes to the AdShift Android SDK will be documented in this file.
 
+## [4.2.0] - Unreleased
+
+### Changed
+- **Install and update times on the install event** — the install event now includes when the app was first installed and last updated on the device, to the hour, and whether it is a preinstalled system app.
+
+### Upgrading
+
+Nothing to change in your code.
+
 ## [4.1.0] - 2026-11-11
 
 ### Changed
