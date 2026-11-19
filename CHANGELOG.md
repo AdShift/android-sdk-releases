@@ -7,6 +7,9 @@ All notable changes to the AdShift Android SDK will be documented in this file.
 ### Changed
 - **People who already had your app are not counted as new installs** — people who had your app before its first version with the AdShift SDK and update to a version with this SDK are counted as existing users, once that version's release day is set in the dashboard.
 
+### Fixed
+- **A link opened after `stop()` is not counted** — it still reaches your listener, and nothing is sent for it, also after the next `start()`.
+
 ### Upgrading
 
 Nothing to change in your code.
